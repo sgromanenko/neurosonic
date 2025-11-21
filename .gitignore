@@ -8,3 +8,11 @@ dist/
 audio/raw/
 audio/processed/
 .gemini/
+
+# SSH Keys (CRITICAL - never commit these!)
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+id_ecdsa*
+*.pub
