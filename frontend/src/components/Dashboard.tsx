@@ -1,4 +1,3 @@
-```
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MODE_CONFIG, ModeType } from '../theme';
@@ -9,7 +8,7 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'recent' | 'favorites'>('recent');
 
   const handleModeSelect = (mode: ModeType) => {
-    navigate(`/ player / ${ mode } `);
+    navigate(`/player/${mode}`);
   };
 
   const getIcon = (iconName: string) => {
@@ -25,11 +24,11 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-background p-6 pb-24 flex flex-col items-center">
       <div className="w-full max-w-6xl">
-        
+
         {/* Hero Section - Jump Back In */}
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-white mb-6">Good afternoon</h1>
-          <button 
+          <button
             onClick={() => handleModeSelect('focus')}
             className="group relative inline-flex items-center justify-center px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           >
@@ -62,17 +61,15 @@ const Dashboard: React.FC = () => {
           <div className="flex space-x-6 mb-6 border-b border-white/10">
             <button
               onClick={() => setActiveTab('recent')}
-              className={`pb - 2 text - lg font - medium transition - colors ${
-    activeTab === 'recent' ? 'text-white border-b-2 border-white' : 'text-gray-500 hover:text-gray-300'
-} `}
+              className={`pb-2 text-lg font-medium transition-colors ${activeTab === 'recent' ? 'text-white border-b-2 border-white' : 'text-gray-500 hover:text-gray-300'
+                }`}
             >
               Recent
             </button>
             <button
               onClick={() => setActiveTab('favorites')}
-              className={`pb - 2 text - lg font - medium transition - colors ${
-    activeTab === 'favorites' ? 'text-white border-b-2 border-white' : 'text-gray-500 hover:text-gray-300'
-} `}
+              className={`pb-2 text-lg font-medium transition-colors ${activeTab === 'favorites' ? 'text-white border-b-2 border-white' : 'text-gray-500 hover:text-gray-300'
+                }`}
             >
               Favorites
             </button>
@@ -102,4 +99,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-```

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MODE_CONFIG, ModeType } from '../theme';
-import { Play, Pause, SkipForward, Repeat, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Info, Menu } from 'lucide-react';
+import { Play, Pause, SkipForward, Repeat, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Menu } from 'lucide-react';
 import ActivitySelector from './ActivitySelector';
 
 const Player: React.FC = () => {

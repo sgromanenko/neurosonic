@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { THEME } from '../theme';
 import { Play, Heart } from 'lucide-react';
 
 type Tab = 'favorites' | 'history';
@@ -51,8 +50,8 @@ const Library: React.FC = () => {
                         key={filter}
                         onClick={() => setActiveFilter(filter as Filter)}
                         className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-all whitespace-nowrap ${activeFilter === filter
-                                ? 'bg-white text-black'
-                                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                            ? 'bg-white text-black'
+                            : 'bg-white/5 text-gray-400 hover:bg-white/10'
                             }`}
                     >
                         {filter}

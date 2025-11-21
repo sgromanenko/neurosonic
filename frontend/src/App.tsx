@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Player from './components/Player';
-import AuthForm from './components/AuthForm';
+import { AuthForm } from './components/AuthForm';
 import Library from './components/Library';
 import BottomNav from './components/BottomNav';
 
