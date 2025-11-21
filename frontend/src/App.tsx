@@ -20,7 +20,7 @@ function App() {
         <Router>
             <div className="min-h-screen bg-background text-foreground relative">
                 <Routes>
-                    <Route path="/ login" element={
+                    <Route path="/login" element={
                         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-black">
                             <AuthForm
                                 type="login"
