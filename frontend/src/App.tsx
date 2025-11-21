@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import Dashboard from './components/Dashboard';
 import Player from './components/Player';
 import { AuthForm } from './components/AuthForm';
@@ -15,27 +16,45 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
+const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <motion.div
+        initial={{ opacity: 0, filter: 'blur(10px)' }}
+        animate={{ opacity: 1, filter: 'blur(0px)' }}
+        exit={{ opacity: 0, filter: 'blur(10px)' }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+        className="w-full min-h-screen"
+    >
+        {children}
+    </motion.div>
+);
+
 function App() {
+    const location = useLocation();
+
     return (
-        <Router>
-            <div className="min-h-screen bg-background text-foreground relative">
-                <Routes>
+        <div className="min-h-screen bg-background text-foreground relative">
+            <AnimatePresence mode="wait">
+                <Routes location={location} key={location.pathname}>
                     <Route path="/login" element={
-                        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-black">
-                            <AuthForm
-                                type="login"
-                                onSubmit={async () => { }}
-                                onToggleMode={() => { }}
-                                isLoading={false}
-                                error={null}
-                            />
-                        </div>
+                        <PageTransition>
+                            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-black">
+                                <AuthForm
+                                    type="login"
+                                    onSubmit={async () => { }}
+                                    onToggleMode={() => { }}
+                                    isLoading={false}
+                                    error={null}
+                                />
+                            </div>
+                        </PageTransition>
                     } />
                     <Route
                         path="/"
                         element={
                             <PrivateRoute>
-                                <Dashboard />
+                                <PageTransition>
+                                    <Dashboard />
+                                </PageTransition>
                             </PrivateRoute>
                         }
                     />
@@ -43,7 +62,9 @@ function App() {
                         path="/library"
                         element={
                             <PrivateRoute>
-                                <Library />
+                                <PageTransition>
+                                    <Library />
+                                </PageTransition>
                             </PrivateRoute>
                         }
                     />
@@ -51,7 +72,9 @@ function App() {
                         path="/explore"
                         element={
                             <PrivateRoute>
-                                <Explore />
+                                <PageTransition>
+                                    <Explore />
+                                </PageTransition>
                             </PrivateRoute>
                         }
                     />
@@ -59,7 +82,9 @@ function App() {
                         path="/profile"
                         element={
                             <PrivateRoute>
-                                <Profile />
+                                <PageTransition>
+                                    <Profile />
+                                </PageTransition>
                             </PrivateRoute>
                         }
                     />
@@ -67,16 +92,18 @@ function App() {
                         path="/player/:mode"
                         element={
                             <PrivateRoute>
-                                <Player />
+                                <PageTransition>
+                                    <Player />
+                                </PageTransition>
                             </PrivateRoute>
                         }
                     />
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
+            </AnimatePresence>
 
-                {isAuthenticated && <BottomNav />}
-            </div>
-        </Router>
+            {isAuthenticated && <BottomNav />}
+        </div>
     );
 }
 

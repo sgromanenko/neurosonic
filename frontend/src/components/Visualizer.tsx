@@ -53,7 +53,7 @@ export function Visualizer({ mode, isPlaying }: VisualizerProps) {
 
             ctx.strokeStyle = color
 
-            const lines = 3
+            const lines = 5 // Increased lines for richness
             for (let i = 0; i < lines; i++) {
                 ctx.beginPath()
                 for (let x = 0; x < width; x++) {
@@ -61,13 +61,35 @@ export function Visualizer({ mode, isPlaying }: VisualizerProps) {
                     // Vary parameters based on mode for different "feel"
                     let freq = 0.01
                     let amp = 50
-                    let speed = time + i
+                    let speed = time + i * 0.5
 
-                    if (mode === 'focus') { freq = 0.02; amp = 30; } // Faster, tighter
-                    if (mode === 'sleep') { freq = 0.005; amp = 80; } // Slower, deeper
-                    if (mode === 'meditate') { freq = 0.01; amp = 40; } // Balanced
+                    // Premium tuning
+                    if (mode === 'focus') {
+                        // Sharp, alert, high frequency
+                        freq = 0.03 + (i * 0.005);
+                        amp = 20 + (Math.sin(time) * 10);
+                        speed = time * 1.5 + i;
+                    }
+                    if (mode === 'relax') {
+                        // Smooth, flowing, medium frequency
+                        freq = 0.01 + (i * 0.002);
+                        amp = 40 + (Math.sin(time * 0.5) * 15);
+                        speed = time * 0.8 + i;
+                    }
+                    if (mode === 'sleep') {
+                        // Deep, slow, low frequency
+                        freq = 0.005 + (i * 0.001);
+                        amp = 60 + (Math.sin(time * 0.3) * 20);
+                        speed = time * 0.4 + i;
+                    }
+                    if (mode === 'meditate') {
+                        // Rhythmic, balanced, breathing effect
+                        freq = 0.015;
+                        amp = 45 + (Math.sin(time * 0.8) * 25); // Strong breathing effect
+                        speed = time + i;
+                    }
 
-                    const y = height / 2 + Math.sin(x * freq + speed) * amp * Math.sin(time * 0.5)
+                    const y = height / 2 + Math.sin(x * freq + speed) * amp * Math.sin(time * 0.5 + i * 0.2)
                     ctx.lineTo(x, y)
                 }
                 ctx.stroke()
