@@ -29,9 +29,16 @@ class Session(SessionBase):
 # User
 class UserBase(BaseModel):
     email: EmailStr
+    full_name: Optional[str] = None
+    preferences: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    preferences: Optional[str] = None
 
 class User(UserBase):
     id: int

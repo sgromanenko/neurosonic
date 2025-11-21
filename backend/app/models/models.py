@@ -11,6 +11,8 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    full_name = Column(String, nullable=True)
+    preferences = Column(String, nullable=True) # JSON string
     created_at = Column(DateTime, default=datetime.utcnow)
 
     sessions = relationship("ListeningSession", back_populates="user")

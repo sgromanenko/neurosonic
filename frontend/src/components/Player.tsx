@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MODE_CONFIG, ModeType } from '../theme';
-import { Play, Pause, SkipForward, Repeat, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Menu } from 'lucide-react';
+import { Play, Pause, SkipForward, Repeat, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Menu, Timer, Infinity as InfinityIcon } from 'lucide-react';
 import ActivitySelector from './ActivitySelector';
+import TimerSelector from './TimerSelector';
+import { Visualizer } from './Visualizer';
+import { SessionSummary } from './SessionSummary';
+import { ACTIVITIES } from '../theme';
 
 const Player: React.FC = () => {
     const { mode } = useParams<{ mode: string }>();
@@ -13,12 +17,71 @@ const Player: React.FC = () => {
     const [showActivities, setShowActivities] = useState(false);
     const [currentActivity, setCurrentActivity] = useState('Deep Work');
     const [neuralIntensity, setNeuralIntensity] = useState<'Low' | 'Medium' | 'High'>('Medium');
+    const [showTimerSelector, setShowTimerSelector] = useState(false);
+    const [timerMode, setTimerMode] = useState<'infinite' | 'countdown'>('infinite');
+    const [remainingTime, setRemainingTime] = useState(0); // in seconds
+    const [showSummary, setShowSummary] = useState(false);
+    const [trackSeed, setTrackSeed] = useState(Date.now());
+    const audioRef = React.useRef<HTMLAudioElement>(null);
 
     const currentMode = (mode as ModeType) || 'focus';
     const modeConfig = MODE_CONFIG[currentMode];
 
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        // Update activity when mode changes
+        const defaultActivity = ACTIVITIES[currentMode as keyof typeof ACTIVITIES]?.[0]?.label;
+        if (defaultActivity) {
+            setCurrentActivity(defaultActivity);
+        }
+        // Reset track seed to force new audio generation for new mode
+        setTrackSeed(Date.now());
+    }, [currentMode]);
+
+    useEffect(() => {
+        if (!audioRef.current) return;
+
+        const audioUrl = `http://localhost:8000/api/audio/generate?mode=${currentMode}&duration=600&seed=${trackSeed}`;
+
+        // Only update src if it changed (to avoid loops, though seed changes will force it)
+        if (audioRef.current.src !== audioUrl) {
+            audioRef.current.src = audioUrl;
+            audioRef.current.load();
+            if (isPlaying) {
+                audioRef.current.play().catch(e => console.error("Playback failed:", e));
+            }
+        }
+    }, [currentMode, trackSeed]);
+
+    useEffect(() => {
+        if (audioRef.current) {
+            if (isPlaying) audioRef.current.play().catch(e => console.error("Playback failed:", e));
+            else audioRef.current.pause();
+        }
+    }, [isPlaying]);
+
+    const saveSession = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            await fetch('http://localhost:8000/api/users/me/history', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    mode: currentMode,
+                    duration_seconds: duration * 60
+                })
+            });
+        } catch (error) {
+            console.error('Failed to save session:', error);
+        }
+    };
+
+    useEffect(() => {
+        let interval: ReturnType<typeof setInterval>;
         if (isPlaying) {
             interval = setInterval(() => {
                 setProgress((prev) => (prev >= 100 ? 0 : prev + 0.1));
@@ -27,6 +90,47 @@ const Player: React.FC = () => {
         return () => clearInterval(interval);
     }, [isPlaying]);
 
+    useEffect(() => {
+        let timerInterval: ReturnType<typeof setInterval>;
+        if (isPlaying && timerMode === 'countdown' && remainingTime > 0) {
+            timerInterval = setInterval(() => {
+                setRemainingTime(prev => {
+                    if (prev <= 1) {
+                        setIsPlaying(false);
+                        setShowSummary(true);
+                        saveSession();
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(timerInterval);
+    }, [isPlaying, timerMode, remainingTime]);
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const handleTimerSelect = (duration: number | 'infinite') => {
+        if (duration === 'infinite') {
+            setTimerMode('infinite');
+            setDuration(0);
+        } else {
+            setTimerMode('countdown');
+            setDuration(duration);
+            setRemainingTime(duration * 60);
+        }
+    };
+
+    const handleNext = () => {
+        setTrackSeed(Date.now());
+        setIsPlaying(true);
+        setProgress(0);
+    };
+
     return (
         <div
             className="min-h-screen flex flex-col text-white transition-all duration-1000 ease-in-out relative overflow-hidden"
@@ -34,6 +138,7 @@ const Player: React.FC = () => {
         >
             {/* Activity Selector Panel */}
             <ActivitySelector
+                mode={currentMode}
                 isOpen={showActivities}
                 onClose={() => setShowActivities(false)}
                 currentActivity={currentActivity}
@@ -71,18 +176,52 @@ const Player: React.FC = () => {
                             </button>
                         ))}
                     </div>
+                    <button
+                        onClick={() => setShowTimerSelector(true)}
+                        className={`p-2 rounded-full transition-colors ${timerMode === 'countdown' ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-white/70'}`}
+                    >
+                        {timerMode === 'countdown' ? (
+                            <div className="flex items-center gap-1 text-xs font-bold">
+                                <Clock className="w-4 h-4" />
+                                <span>{formatTime(remainingTime)}</span>
+                            </div>
+                        ) : (
+                            <Timer className="w-6 h-6" />
+                        )}
+                    </button>
                     <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
                         <Settings className="w-6 h-6" />
                     </button>
                 </div>
             </div>
 
+            {/* Timer Selector Modal */}
+            <TimerSelector
+                isOpen={showTimerSelector}
+                onClose={() => setShowTimerSelector(false)}
+                onSelect={handleTimerSelect}
+                currentDuration={timerMode === 'infinite' ? 'infinite' : duration}
+            />
+
+            {/* Session Summary Overlay */}
+            {showSummary && (
+                <SessionSummary
+                    duration={duration}
+                    mode={currentMode}
+                    onRestart={() => {
+                        setShowSummary(false);
+                        setIsPlaying(true);
+                    }}
+                />
+            )}
+
             {/* Main Content Area */}
             <div className="flex-1 flex items-center justify-center relative">
                 {/* Visualizer */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
-                    <div className={`w-72 h-72 rounded-full bg-white blur-3xl transition-transform duration-[4000ms] ${isPlaying ? 'scale-150 animate-pulse' : 'scale-100'}`} />
-                    <div className={`absolute w-48 h-48 rounded-full bg-white blur-2xl transition-transform duration-[3000ms] delay-75 ${isPlaying ? 'scale-125 animate-pulse' : 'scale-90'}`} />
+                <div className="absolute inset-0 flex items-center justify-center opacity-60 pointer-events-none">
+                    <div className="w-full h-full max-w-4xl max-h-96">
+                        <Visualizer mode={currentMode} isPlaying={isPlaying} />
+                    </div>
                 </div>
 
                 <div className="z-10 text-center">
@@ -119,12 +258,24 @@ const Player: React.FC = () => {
                     {/* Controls */}
                     <div className="flex justify-between items-center">
 
-                        {/* Left Controls (Timer) */}
+                        {/* Left Controls (Timer Status) */}
                         <div className="flex items-center space-x-4 w-1/3">
-                            <div className="flex items-center space-x-2 text-sm font-medium opacity-70 hover:opacity-100 cursor-pointer transition-opacity bg-white/5 px-3 py-1.5 rounded-lg">
-                                <Clock className="w-4 h-4" />
-                                <span>{duration} min</span>
-                            </div>
+                            <button
+                                onClick={() => setShowTimerSelector(true)}
+                                className="flex items-center space-x-2 text-sm font-medium opacity-70 hover:opacity-100 cursor-pointer transition-opacity bg-white/5 px-3 py-1.5 rounded-lg"
+                            >
+                                {timerMode === 'infinite' ? (
+                                    <>
+                                        <InfinityIcon className="w-4 h-4" />
+                                        <span>Infinite</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Clock className="w-4 h-4" />
+                                        <span>{formatTime(remainingTime)}</span>
+                                    </>
+                                )}
+                            </button>
                         </div>
 
                         {/* Center Controls (Play/Pause) */}
@@ -144,7 +295,10 @@ const Player: React.FC = () => {
                                 )}
                             </button>
 
-                            <button className="p-2 opacity-70 hover:opacity-100 transition-opacity hover:scale-110">
+                            <button
+                                onClick={handleNext}
+                                className="p-2 opacity-70 hover:opacity-100 transition-opacity hover:scale-110"
+                            >
                                 <SkipForward className="w-5 h-5" />
                             </button>
                         </div>
@@ -159,6 +313,7 @@ const Player: React.FC = () => {
                     </div>
                 </div>
             </div>
+            <audio ref={audioRef} loop onEnded={handleNext} />
         </div>
     );
 };

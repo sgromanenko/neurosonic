@@ -1,21 +1,16 @@
 import React from 'react';
 import { Check } from 'lucide-react';
+import { ACTIVITIES } from '../theme';
 
 interface ActivitySelectorProps {
+    mode: string;
     currentActivity: string;
     onSelect: (activity: string) => void;
     isOpen: boolean;
     onClose: () => void;
 }
 
-const ACTIVITIES = [
-    { id: 'deep_work', label: 'Deep Work', desc: 'Sustained concentration' },
-    { id: 'creative_flow', label: 'Creative Flow', desc: 'Ideation & creativity' },
-    { id: 'study_read', label: 'Study & Read', desc: 'Learning & retention' },
-    { id: 'light_work', label: 'Light Work', desc: 'Admin & emails' },
-];
-
-const ActivitySelector: React.FC<ActivitySelectorProps> = ({ currentActivity, onSelect, isOpen, onClose }) => {
+const ActivitySelector: React.FC<ActivitySelectorProps> = ({ mode, currentActivity, onSelect, isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
@@ -26,7 +21,7 @@ const ActivitySelector: React.FC<ActivitySelectorProps> = ({ currentActivity, on
             </div>
 
             <div className="space-y-2">
-                {ACTIVITIES.map((activity) => (
+                {ACTIVITIES[mode as keyof typeof ACTIVITIES]?.map((activity) => (
                     <button
                         key={activity.id}
                         onClick={() => {
@@ -34,8 +29,8 @@ const ActivitySelector: React.FC<ActivitySelectorProps> = ({ currentActivity, on
                             onClose();
                         }}
                         className={`w-full text-left p-4 rounded-xl transition-all ${currentActivity === activity.label
-                                ? 'bg-white/20 border border-white/20'
-                                : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                            ? 'bg-white/20 border border-white/20'
+                            : 'bg-white/5 hover:bg-white/10 border border-transparent'
                             }`}
                     >
                         <div className="flex justify-between items-center">

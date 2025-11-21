@@ -38,3 +38,31 @@ export const MODE_CONFIG: Record<ModeType, { label: string; gradient: string; ic
     sleep: { label: 'Sleep', gradient: THEME.gradients.sleep, icon: 'moon' },
     meditate: { label: 'Meditate', gradient: THEME.gradients.meditate, icon: 'om' },
 };
+
+export const ACTIVITIES = {
+    focus: [
+        { id: 'deep_work', label: 'Deep Work', desc: 'Sustained concentration' },
+        { id: 'coding', label: 'Coding', desc: 'Flow state for programming' },
+        { id: 'reading', label: 'Reading', desc: 'Absorb information' },
+        { id: 'writing', label: 'Writing', desc: 'Creative & technical writing' },
+        { id: 'studying', label: 'Studying', desc: 'Retention & focus' }
+    ],
+    relax: [
+        { id: 'unwind', label: 'Unwinding', desc: 'Decompress after work' },
+        { id: 'break', label: 'Break Time', desc: 'Short recharge' },
+        { id: 'evening', label: 'Evening Wind-Down', desc: 'Prepare for sleep' },
+        { id: 'post_work', label: 'Post-Work', desc: 'Transition to personal time' }
+    ],
+    meditate: [
+        { id: 'mindfulness', label: 'Mindfulness', desc: 'Present moment awareness' },
+        { id: 'breathing', label: 'Breathing', desc: 'Breath-focused meditation' },
+        { id: 'body_scan', label: 'Body Scan', desc: 'Physical awareness' },
+        { id: 'visualization', label: 'Visualization', desc: 'Guided imagery' }
+    ],
+    sleep: [
+        { id: 'falling_asleep', label: 'Falling Asleep', desc: 'Drift off easily' },
+        { id: 'nap', label: 'Nap', desc: 'Power nap' },
+        { id: 'insomnia', label: 'Insomnia Relief', desc: 'Calm racing thoughts' },
+        { id: 'deep_rest', label: 'Deep Rest', desc: 'Restorative downtime' }
+    ]
+};

@@ -13,18 +13,13 @@ export interface SessionConfig {
     intensity: 'low' | 'medium' | 'high'
 }
 
-const ACTIVITIES = {
-    focus: ['Deep Work', 'Coding', 'Reading', 'Writing', 'Studying'],
-    relax: ['Unwinding', 'Break Time', 'Evening Wind-Down', 'Post-Work'],
-    meditate: ['Mindfulness', 'Breathing', 'Body Scan', 'Visualization'],
-    sleep: ['Falling Asleep', 'Nap', 'Insomnia Relief', 'Deep Rest']
-}
+import { ACTIVITIES } from '../theme'
 
 const DURATIONS = [15, 30, 45, 60, 90, 120]
 
 export function SessionConfig({ mode, onStart, onBack }: SessionConfigProps) {
     const [duration, setDuration] = useState(30)
-    const [activity, setActivity] = useState(ACTIVITIES[mode as keyof typeof ACTIVITIES]?.[0])
+    const [activity, setActivity] = useState(ACTIVITIES[mode as keyof typeof ACTIVITIES]?.[0]?.label)
     const [intensity, setIntensity] = useState<'low' | 'medium' | 'high'>('medium')
 
     const handleStart = () => {
@@ -56,8 +51,8 @@ export function SessionConfig({ mode, onStart, onBack }: SessionConfigProps) {
                                 key={dur}
                                 onClick={() => setDuration(dur)}
                                 className={`py-3 rounded-lg font-medium transition-all ${duration === dur
-                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30'
-                                        : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30'
+                                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
                                     }`}
                             >
                                 {dur} min
@@ -78,8 +73,8 @@ export function SessionConfig({ mode, onStart, onBack }: SessionConfigProps) {
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                     >
                         {ACTIVITIES[mode as keyof typeof ACTIVITIES]?.map((act) => (
-                            <option key={act} value={act} className="bg-gray-900">
-                                {act}
+                            <option key={act.id} value={act.label} className="bg-gray-900">
+                                {act.label}
                             </option>
                         ))}
                     </select>
@@ -97,8 +92,8 @@ export function SessionConfig({ mode, onStart, onBack }: SessionConfigProps) {
                                 key={level}
                                 onClick={() => setIntensity(level)}
                                 className={`py-3 rounded-lg font-medium transition-all capitalize ${intensity === level
-                                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30'
-                                        : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/30'
+                                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
                                     }`}
                             >
                                 {level}

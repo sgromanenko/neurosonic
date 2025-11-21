@@ -1,8 +1,8 @@
-import { Brain, Moon, Coffee } from 'lucide-react'
-import { Mode } from '../App'
+import { Brain, Moon, Coffee, Sparkles } from 'lucide-react'
+import { ModeType } from '../theme'
 
 interface ModeSelectorProps {
-    onSelect: (mode: Mode) => void
+    onSelect: (mode: ModeType) => void
 }
 
 export function ModeSelector({ onSelect }: ModeSelectorProps) {
@@ -33,6 +33,15 @@ export function ModeSelector({ onSelect }: ModeSelectorProps) {
             color: 'text-indigo-400',
             bg: 'hover:bg-indigo-500/10',
             border: 'hover:border-indigo-500/30'
+        },
+        {
+            id: 'meditate',
+            label: 'Meditate',
+            icon: Sparkles,
+            desc: 'Mindfulness & awareness',
+            color: 'text-cyan-400',
+            bg: 'hover:bg-cyan-500/10',
+            border: 'hover:border-cyan-500/30'
         }
     ] as const
 

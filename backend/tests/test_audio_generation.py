@@ -58,6 +58,7 @@ if __name__ == "__main__":
     results.append(test_modulation_frequency("focus", 14.0)) # Beta
     results.append(test_modulation_frequency("relax", 10.0)) # Alpha
     results.append(test_modulation_frequency("sleep", 2.0))  # Delta
+    results.append(test_modulation_frequency("meditate", 6.0)) # Theta
     
     if all(results):
         print("\nAll audio verification tests PASSED.")

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { Mode } from '../App'
+import { ModeType } from '../theme'
 
 interface VisualizerProps {
-    mode: Mode
+    mode: ModeType
     isPlaying: boolean
 }
 
@@ -49,6 +49,7 @@ export function Visualizer({ mode, isPlaying }: VisualizerProps) {
             if (mode === 'focus') color = 'rgba(96, 165, 250, 0.5)' // Blue
             if (mode === 'relax') color = 'rgba(45, 212, 191, 0.5)' // Teal
             if (mode === 'sleep') color = 'rgba(129, 140, 248, 0.5)' // Indigo
+            if (mode === 'meditate') color = 'rgba(6, 182, 212, 0.5)' // Cyan
 
             ctx.strokeStyle = color
 
@@ -64,6 +65,7 @@ export function Visualizer({ mode, isPlaying }: VisualizerProps) {
 
                     if (mode === 'focus') { freq = 0.02; amp = 30; } // Faster, tighter
                     if (mode === 'sleep') { freq = 0.005; amp = 80; } // Slower, deeper
+                    if (mode === 'meditate') { freq = 0.01; amp = 40; } // Balanced
 
                     const y = height / 2 + Math.sin(x * freq + speed) * amp * Math.sin(time * 0.5)
                     ctx.lineTo(x, y)

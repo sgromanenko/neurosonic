@@ -6,7 +6,7 @@ router = APIRouter()
 
 @router.get("/generate")
 async def generate_audio(
-    mode: str = Query(..., regex="^(focus|relax|sleep)$"),
+    mode: str = Query(..., regex="^(focus|relax|sleep|meditate)$"),
     duration: int = Query(60, ge=10, le=600) # Limit to 10 mins for demo
 ):
     """
