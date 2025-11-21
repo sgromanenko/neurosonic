@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MODE_CONFIG, ModeType } from '../theme';
-import { Play, Pause, SkipForward, Repeat, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Menu, Timer, Infinity as InfinityIcon } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Repeat, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Menu, Timer, Infinity as InfinityIcon } from 'lucide-react';
 import ActivitySelector from './ActivitySelector';
 import TimerSelector from './TimerSelector';
 import { Visualizer } from './Visualizer';
@@ -22,6 +22,8 @@ const Player: React.FC = () => {
     const [remainingTime, setRemainingTime] = useState(0); // in seconds
     const [showSummary, setShowSummary] = useState(false);
     const [trackSeed, setTrackSeed] = useState(Date.now());
+    const [seedHistory, setSeedHistory] = useState<number[]>([]);
+    const [volume, setVolume] = useState(0.8);
     const audioRef = React.useRef<HTMLAudioElement>(null);
 
     const currentMode = (mode as ModeType) || 'focus';
@@ -35,6 +37,7 @@ const Player: React.FC = () => {
         }
         // Reset track seed to force new audio generation for new mode
         setTrackSeed(Date.now());
+        setSeedHistory([]);
     }, [currentMode]);
 
     useEffect(() => {
@@ -58,6 +61,12 @@ const Player: React.FC = () => {
             else audioRef.current.pause();
         }
     }, [isPlaying]);
+
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = volume;
+        }
+    }, [volume]);
 
     const saveSession = async () => {
         try {
@@ -126,9 +135,20 @@ const Player: React.FC = () => {
     };
 
     const handleNext = () => {
+        setSeedHistory(prev => [...prev, trackSeed]);
         setTrackSeed(Date.now());
         setIsPlaying(true);
         setProgress(0);
+    };
+
+    const handlePrevious = () => {
+        if (seedHistory.length > 0) {
+            const previousSeed = seedHistory[seedHistory.length - 1];
+            setSeedHistory(prev => prev.slice(0, -1));
+            setTrackSeed(previousSeed);
+            setIsPlaying(true);
+            setProgress(0);
+        }
     };
 
     return (
@@ -280,8 +300,12 @@ const Player: React.FC = () => {
 
                         {/* Center Controls (Play/Pause) */}
                         <div className="flex items-center justify-center space-x-8 w-1/3">
-                            <button className="p-2 opacity-70 hover:opacity-100 transition-opacity hover:scale-110">
-                                <Repeat className="w-5 h-5" />
+                            <button
+                                onClick={handlePrevious}
+                                disabled={seedHistory.length === 0}
+                                className={`p-2 transition-opacity hover:scale-110 ${seedHistory.length === 0 ? 'opacity-30 cursor-not-allowed' : 'opacity-70 hover:opacity-100'}`}
+                            >
+                                <SkipBack className="w-5 h-5" />
                             </button>
 
                             <button
@@ -306,9 +330,15 @@ const Player: React.FC = () => {
                         {/* Right Controls (Volume) */}
                         <div className="flex items-center justify-end space-x-4 w-1/3">
                             <Volume2 className="w-5 h-5 opacity-70" />
-                            <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden cursor-pointer group">
-                                <div className="w-3/4 h-full bg-white/70 group-hover:bg-white transition-colors" />
-                            </div>
+                            <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={volume}
+                                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                className="w-24 h-1 bg-white/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                            />
                         </div>
                     </div>
                 </div>
