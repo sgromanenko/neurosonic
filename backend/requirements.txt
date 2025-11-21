@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+numpy
+scipy
+pydub
+python-multipart
+pydantic
+pydantic-settings
+sqlalchemy
+alembic
+python-jose[cryptography]
+passlib[bcrypt]
+httpx
+email-validator
