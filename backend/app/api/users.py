@@ -39,16 +39,29 @@ async def update_user_me(
 async def read_user_history(
     skip: int = 0, 
     limit: int = 100, 
+    distinct_modes: bool = False,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    sessions = db.query(models.ListeningSession)\
+    query = db.query(models.ListeningSession)\
         .filter(models.ListeningSession.user_id == current_user.id)\
-        .order_by(models.ListeningSession.started_at.desc())\
-        .offset(skip)\
-        .limit(limit)\
-        .all()
-    return sessions
+        .order_by(models.ListeningSession.started_at.desc())
+        
+    if distinct_modes:
+        # Fetch more to ensure we find distinct ones, then filter in python
+        # SQLite doesn't support DISTINCT ON easily
+        sessions = query.limit(limit * 5).all()
+        unique_sessions = []
+        seen_modes = set()
+        for session in sessions:
+            if session.mode not in seen_modes:
+                unique_sessions.append(session)
+                seen_modes.add(session.mode)
+            if len(unique_sessions) >= limit:
+                break
+        return unique_sessions
+        
+    return query.offset(skip).limit(limit).all()
 
 @router.post("/me/history", response_model=schemas.Session)
 async def create_session_record(

@@ -1,81 +1,153 @@
-import React from 'react';
-import { X, Infinity, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Modal } from './common/Modal';
+import { Button } from './common/Button';
+import { Infinity, Clock, Timer as TimerIcon, Zap, Coffee } from 'lucide-react';
 
 interface TimerSelectorProps {
     isOpen: boolean;
     onClose: () => void;
-    onSelect: (duration: number | 'infinite') => void;
-    currentDuration: number | 'infinite';
+    onSelect: (duration: number | null) => void;
 }
 
-const DURATIONS = [
-    { label: '15 min', value: 15 },
-    { label: '30 min', value: 30 },
-    { label: '45 min', value: 45 },
-    { label: '1 hour', value: 60 },
-    { label: '1.5 hours', value: 90 },
-    { label: '2 hours', value: 120 },
-    { label: '4 hours', value: 240 },
-    { label: '8 hours', value: 480 },
-];
+type TabType = 'infinite' | 'timer' | 'intervals';
 
-const TimerSelector: React.FC<TimerSelectorProps> = ({ isOpen, onClose, onSelect, currentDuration }) => {
-    if (!isOpen) return null;
+export const TimerSelector: React.FC<TimerSelectorProps> = ({ isOpen, onClose, onSelect }) => {
+    const [activeTab, setActiveTab] = useState<TabType>('infinite');
+
+    const tabs = [
+        { id: 'infinite', label: 'Infinite', icon: Infinity },
+        { id: 'timer', label: 'Timer', icon: Clock },
+        { id: 'intervals', label: 'Intervals', icon: TimerIcon },
+    ];
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-md bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 shadow-2xl transform transition-all scale-100">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-blue-400" />
-                        Set Timer
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={
+                <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-blue-400" />
+                    Timer Settings
+                </div>
+            }
+            className="max-w-lg"
+        >
+            <div className="flex flex-col h-full">
+                {/* Tabs */}
+                <div className="flex p-1 mb-6 bg-white/5 rounded-xl border border-white/10">
+                    {tabs.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as TabType)}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${isActive
+                                        ? 'bg-white/10 text-white shadow-lg'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                            >
+                                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-400' : ''}`} />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                    <button
-                        onClick={() => {
-                            onSelect('infinite');
-                            onClose();
-                        }}
-                        className={`col-span-2 p-4 rounded-xl flex items-center justify-center gap-3 transition-all ${currentDuration === 'infinite'
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30'
-                                : 'bg-white/5 text-gray-300 hover:bg-white/10'
-                            }`}
-                    >
-                        <Infinity className="w-6 h-6" />
-                        <span className="font-bold text-lg">Infinite Play</span>
-                    </button>
+                {/* Content */}
+                <div className="min-h-[200px]">
+                    {activeTab === 'infinite' && (
+                        <div className="flex flex-col items-center justify-center h-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div className="p-4 rounded-full bg-blue-500/10 text-blue-400 mb-2">
+                                <Infinity className="w-12 h-12" />
+                            </div>
+                            <div className="text-center space-y-2">
+                                <h3 className="text-xl font-bold text-white">Infinite Play</h3>
+                                <p className="text-gray-400 text-sm max-w-[200px] mx-auto">
+                                    Music plays continuously until you decide to stop.
+                                </p>
+                            </div>
+                            <Button
+                                variant="accent"
+                                className="w-full max-w-xs"
+                                onClick={() => onSelect(null)}
+                            >
+                                Start Infinite Session
+                            </Button>
+                        </div>
+                    )}
 
-                    {DURATIONS.map((dur) => (
-                        <button
-                            key={dur.value}
-                            onClick={() => {
-                                onSelect(dur.value);
-                                onClose();
-                            }}
-                            className={`p-3 rounded-xl font-medium transition-all ${currentDuration === dur.value
-                                    ? 'bg-white text-black'
-                                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
-                                }`}
-                        >
-                            {dur.label}
-                        </button>
-                    ))}
+                    {activeTab === 'timer' && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div className="text-center mb-6">
+                                <h3 className="text-lg font-medium text-white mb-2">Set Duration</h3>
+                                <p className="text-gray-400 text-sm">Session will end automatically</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                {[15, 30, 45, 60, 90, 120].map((minutes) => (
+                                    <Button
+                                        key={minutes}
+                                        variant="secondary"
+                                        className="h-14 text-lg group hover:border-blue-500/50 hover:bg-blue-500/10"
+                                        onClick={() => onSelect(minutes * 60)}
+                                    >
+                                        <span className="group-hover:text-blue-400 transition-colors">{minutes}</span>
+                                        <span className="text-xs text-gray-500 ml-1 group-hover:text-blue-400/70">min</span>
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'intervals' && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div className="text-center mb-6">
+                                <h3 className="text-lg font-medium text-white mb-2">Focus Intervals</h3>
+                                <p className="text-gray-400 text-sm">Structure your work with breaks</p>
+                            </div>
+
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-between p-4 h-auto group hover:bg-purple-500/10 border border-white/5 hover:border-purple-500/30"
+                                onClick={() => onSelect(25 * 60)}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-full bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+                                        <Zap className="w-6 h-6" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-bold text-white text-lg group-hover:text-purple-300 transition-colors">Pomodoro</div>
+                                        <div className="text-sm text-gray-400">25m focus + 5m break</div>
+                                    </div>
+                                </div>
+                                <div className="text-xs font-mono bg-white/10 px-2 py-1 rounded text-gray-300">
+                                    30m total
+                                </div>
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                className="w-full justify-between p-4 h-auto group hover:bg-green-500/10 border border-white/5 hover:border-green-500/30"
+                                onClick={() => onSelect(50 * 60)}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-full bg-green-500/20 text-green-400 group-hover:scale-110 transition-transform">
+                                        <Coffee className="w-6 h-6" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-bold text-white text-lg group-hover:text-green-300 transition-colors">Deep Work</div>
+                                        <div className="text-sm text-gray-400">50m focus + 10m break</div>
+                                    </div>
+                                </div>
+                                <div className="text-xs font-mono bg-white/10 px-2 py-1 rounded text-gray-300">
+                                    60m total
+                                </div>
+                            </Button>
+                        </div>
+                    )}
                 </div>
-
-                <p className="text-center text-xs text-gray-500">
-                    Audio will stop automatically when the timer ends.
-                </p>
             </div>
-        </div>
+        </Modal>
     );
 };
-
-export default TimerSelector;

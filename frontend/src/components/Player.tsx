@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MODE_CONFIG, ModeType } from '../theme';
-import { Play, Pause, SkipForward, SkipBack, Repeat, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Menu, Timer, Infinity as InfinityIcon } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Menu, Timer, Infinity as InfinityIcon } from 'lucide-react';
 import ActivitySelector from './ActivitySelector';
-import TimerSelector from './TimerSelector';
-import { Visualizer } from './Visualizer';
+import { TimerSelector } from './TimerSelector';
 import { SessionSummary } from './SessionSummary';
 import { ACTIVITIES } from '../theme';
+import { Button } from './common/Button';
+import { Slider } from './common/Slider';
+import { SettingsModal } from './SettingsModal';
 
 const Player: React.FC = () => {
     const { mode } = useParams<{ mode: string }>();
@@ -16,8 +18,8 @@ const Player: React.FC = () => {
     const [progress, setProgress] = useState(0);
     const [showActivities, setShowActivities] = useState(false);
     const [currentActivity, setCurrentActivity] = useState('Deep Work');
-    const [neuralIntensity, setNeuralIntensity] = useState<'Low' | 'Medium' | 'High'>('Medium');
     const [showTimerSelector, setShowTimerSelector] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
     const [timerMode, setTimerMode] = useState<'infinite' | 'countdown'>('infinite');
     const [remainingTime, setRemainingTime] = useState(0); // in seconds
     const [showSummary, setShowSummary] = useState(false);
@@ -123,14 +125,14 @@ const Player: React.FC = () => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleTimerSelect = (duration: number | 'infinite') => {
-        if (duration === 'infinite') {
+    const handleTimerSelect = (duration: number | null) => {
+        if (duration === null) {
             setTimerMode('infinite');
             setDuration(0);
         } else {
             setTimerMode('countdown');
             setDuration(duration);
-            setRemainingTime(duration * 60);
+            setRemainingTime(duration); // duration is in seconds from TimerSelector
         }
     };
 
@@ -156,49 +158,39 @@ const Player: React.FC = () => {
             className="min-h-screen flex flex-col text-white transition-all duration-1000 ease-in-out relative overflow-hidden"
             style={{ background: modeConfig.gradient }}
         >
-            {/* Activity Selector Panel */}
-            <ActivitySelector
-                mode={currentMode}
-                isOpen={showActivities}
-                onClose={() => setShowActivities(false)}
-                currentActivity={currentActivity}
-                onSelect={setCurrentActivity}
-            />
-
             {/* Top Bar */}
-            <div className="flex justify-between items-center p-6 z-10">
+            <div className="flex justify-between items-center p-6 z-10 relative">
                 <div className="flex items-center space-x-4">
-                    <button
+                    <Button
+                        variant="icon"
                         onClick={() => navigate('/')}
-                        className="p-2 rounded-full hover:bg-white/10 transition-colors"
                     >
                         <ArrowLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                        onClick={() => setShowActivities(true)}
-                        className="flex items-center space-x-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                    >
-                        <Menu className="w-4 h-4" />
-                        <span className="font-medium">{currentActivity}</span>
-                    </button>
+                    </Button>
+                    <div className="relative">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowActivities(true)}
+                            className="rounded-full"
+                        >
+                            <Menu className="w-4 h-4" />
+                            <span className="font-medium">{currentActivity}</span>
+                        </Button>
+                        <ActivitySelector
+                            mode={currentMode}
+                            isOpen={showActivities}
+                            onClose={() => setShowActivities(false)}
+                            currentActivity={currentActivity}
+                            onSelect={setCurrentActivity}
+                        />
+                    </div>
                 </div>
 
                 <div className="flex items-center space-x-4">
-                    <div className="hidden md:flex items-center space-x-2 bg-black/20 px-3 py-1 rounded-full">
-                        <span className="text-xs font-bold uppercase tracking-wider opacity-70">Neural Effect:</span>
-                        {(['Low', 'Medium', 'High'] as const).map(level => (
-                            <button
-                                key={level}
-                                onClick={() => setNeuralIntensity(level)}
-                                className={`text-xs px-2 py-0.5 rounded ${neuralIntensity === level ? 'bg-white text-black font-bold' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                {level}
-                            </button>
-                        ))}
-                    </div>
-                    <button
+                    <Button
+                        variant={timerMode === 'countdown' ? 'primary' : 'icon'}
                         onClick={() => setShowTimerSelector(true)}
-                        className={`p-2 rounded-full transition-colors ${timerMode === 'countdown' ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-white/70'}`}
+                        className={timerMode === 'countdown' ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : ''}
                     >
                         {timerMode === 'countdown' ? (
                             <div className="flex items-center gap-1 text-xs font-bold">
@@ -208,10 +200,10 @@ const Player: React.FC = () => {
                         ) : (
                             <Timer className="w-6 h-6" />
                         )}
-                    </button>
-                    <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                    </Button>
+                    <Button variant="icon" onClick={() => setShowSettings(true)}>
                         <Settings className="w-6 h-6" />
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -220,7 +212,12 @@ const Player: React.FC = () => {
                 isOpen={showTimerSelector}
                 onClose={() => setShowTimerSelector(false)}
                 onSelect={handleTimerSelect}
-                currentDuration={timerMode === 'infinite' ? 'infinite' : duration}
+            />
+
+            {/* Settings Modal */}
+            <SettingsModal
+                isOpen={showSettings}
+                onClose={() => setShowSettings(false)}
             />
 
             {/* Session Summary Overlay */}
@@ -237,28 +234,21 @@ const Player: React.FC = () => {
 
             {/* Main Content Area */}
             <div className="flex-1 flex items-center justify-center relative">
-                {/* Visualizer */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-60 pointer-events-none">
-                    <div className="w-full h-full max-w-4xl max-h-96">
-                        <Visualizer mode={currentMode} isPlaying={isPlaying} />
-                    </div>
-                </div>
-
                 <div className="z-10 text-center">
                     <div className="mb-6 inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
                         <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                         <span className="text-xs font-bold uppercase tracking-wider">Science-based Audio</span>
                     </div>
                     <h2 className="text-5xl md:text-7xl font-bold mb-4 drop-shadow-lg tracking-tight">{currentActivity}</h2>
-                    <p className="text-xl opacity-80 font-light">Atmospheric • {neuralIntensity} Intensity</p>
+                    <p className="text-xl opacity-80 font-light">Atmospheric</p>
 
                     <div className="mt-8 flex justify-center space-x-4">
-                        <button className="p-3 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+                        <Button variant="secondary" className="rounded-full p-3">
                             <ThumbsDown className="w-6 h-6" />
-                        </button>
-                        <button className="p-3 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+                        </Button>
+                        <Button variant="secondary" className="rounded-full p-3">
                             <ThumbsUp className="w-6 h-6" />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -280,9 +270,10 @@ const Player: React.FC = () => {
 
                         {/* Left Controls (Timer Status) */}
                         <div className="flex items-center space-x-4 w-1/3">
-                            <button
+                            <Button
+                                variant="ghost"
                                 onClick={() => setShowTimerSelector(true)}
-                                className="flex items-center space-x-2 text-sm font-medium opacity-70 hover:opacity-100 cursor-pointer transition-opacity bg-white/5 px-3 py-1.5 rounded-lg"
+                                className="text-sm font-medium opacity-70 hover:opacity-100 bg-white/5 px-3 py-1.5 rounded-lg"
                             >
                                 {timerMode === 'infinite' ? (
                                     <>
@@ -295,49 +286,52 @@ const Player: React.FC = () => {
                                         <span>{formatTime(remainingTime)}</span>
                                     </>
                                 )}
-                            </button>
+                            </Button>
                         </div>
 
                         {/* Center Controls (Play/Pause) */}
                         <div className="flex items-center justify-center space-x-8 w-1/3">
-                            <button
+                            <Button
+                                variant="icon"
                                 onClick={handlePrevious}
                                 disabled={seedHistory.length === 0}
-                                className={`p-2 transition-opacity hover:scale-110 ${seedHistory.length === 0 ? 'opacity-30 cursor-not-allowed' : 'opacity-70 hover:opacity-100'}`}
+                                className={`hover:scale-110 ${seedHistory.length === 0 ? 'opacity-30 cursor-not-allowed' : 'opacity-70 hover:opacity-100'}`}
                             >
                                 <SkipBack className="w-5 h-5" />
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
+                                variant="primary"
+                                shape="circle"
                                 onClick={() => setIsPlaying(!isPlaying)}
-                                className="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-xl hover:shadow-2xl"
+                                className="w-16 h-16 flex items-center justify-center hover:scale-105 transition-all shadow-xl hover:shadow-2xl p-0"
                             >
                                 {isPlaying ? (
                                     <Pause className="w-6 h-6 fill-current" />
                                 ) : (
                                     <Play className="w-6 h-6 fill-current ml-1" />
                                 )}
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
+                                variant="icon"
                                 onClick={handleNext}
-                                className="p-2 opacity-70 hover:opacity-100 transition-opacity hover:scale-110"
+                                className="opacity-70 hover:opacity-100 hover:scale-110"
                             >
                                 <SkipForward className="w-5 h-5" />
-                            </button>
+                            </Button>
                         </div>
 
                         {/* Right Controls (Volume) */}
                         <div className="flex items-center justify-end space-x-4 w-1/3">
                             <Volume2 className="w-5 h-5 opacity-70" />
-                            <input
-                                type="range"
+                            <Slider
                                 min="0"
                                 max="1"
                                 step="0.01"
                                 value={volume}
                                 onChange={(e) => setVolume(parseFloat(e.target.value))}
-                                className="w-24 h-1 bg-white/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                                className="w-20"
                             />
                         </div>
                     </div>
