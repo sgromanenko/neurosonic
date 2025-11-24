@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MODE_CONFIG, ModeType } from '../theme';
-import { Play, Pause, SkipForward, SkipBack, Volume2, ArrowLeft, Settings, Clock, ThumbsUp, ThumbsDown, Menu, Timer, Infinity as InfinityIcon } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, ArrowLeft, Settings, Clock, Heart, HeartCrack, Menu, Timer, Infinity as InfinityIcon, ChevronDown, ChevronUp, Zap, Music } from 'lucide-react';
 import ActivitySelector from './ActivitySelector';
 import { TimerSelector } from './TimerSelector';
 import { SessionSummary } from './SessionSummary';
@@ -26,7 +26,17 @@ const Player: React.FC = () => {
     const [trackSeed, setTrackSeed] = useState(Date.now());
     const [seedHistory, setSeedHistory] = useState<number[]>([]);
     const [volume, setVolume] = useState(0.8);
+    const [showDetails, setShowDetails] = useState(false);
+    const [isLiked, setIsLiked] = useState<boolean | null>(null);
     const audioRef = React.useRef<HTMLAudioElement>(null);
+
+    // Mock track metadata - in real app this would come from backend
+    const trackMetadata = {
+        neuralEffect: 'High',
+        genre: 'Cinematic',
+        bpm: 92,
+        energy: 'Medium'
+    };
 
     const currentMode = (mode as ModeType) || 'focus';
     const modeConfig = MODE_CONFIG[currentMode];
@@ -242,14 +252,64 @@ const Player: React.FC = () => {
                     <h2 className="text-5xl md:text-7xl font-bold mb-4 drop-shadow-lg tracking-tight">{currentActivity}</h2>
                     <p className="text-xl opacity-80 font-light">Atmospheric</p>
 
-                    <div className="mt-8 flex justify-center space-x-4">
-                        <Button variant="secondary" className="rounded-full p-3">
-                            <ThumbsDown className="w-6 h-6" />
+                    {/* Like/Dislike Buttons */}
+                    <div className="mt-8 flex justify-center items-center space-x-4">
+                        <Button
+                            variant="ghost"
+                            className="rounded-full p-3 hover:bg-red-500/10 group transition-all"
+                            onClick={() => setIsLiked(false)}
+                        >
+                            <HeartCrack className={`w-6 h-6 transition-colors ${isLiked === false ? 'text-red-400 fill-red-400' : 'text-gray-400 group-hover:text-red-400'
+                                }`} />
                         </Button>
-                        <Button variant="secondary" className="rounded-full p-3">
-                            <ThumbsUp className="w-6 h-6" />
+                        <Button
+                            variant="ghost"
+                            className="rounded-full p-3 hover:bg-pink-500/10 group transition-all"
+                            onClick={() => setIsLiked(true)}
+                        >
+                            <Heart className={`w-6 h-6 transition-colors ${isLiked === true ? 'text-pink-400 fill-pink-400' : 'text-gray-400 group-hover:text-pink-400'
+                                }`} />
                         </Button>
                     </div>
+
+                    {/* Details Toggle */}
+                    <button
+                        onClick={() => setShowDetails(!showDetails)}
+                        className="mt-6 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group"
+                    >
+                        {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        <span className="group-hover:underline">{showDetails ? 'Hide' : 'Show'} Details</span>
+                    </button>
+
+                    {/* Track Details */}
+                    {showDetails && (
+                        <div className="mt-6 p-6 rounded-2xl bg-black/30 backdrop-blur-md border border-white/10 animate-in fade-in slide-in-from-top-4 duration-300">
+                            <div className="grid grid-cols-2 gap-4 text-left">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 uppercase tracking-wider">
+                                        <Zap className="w-3 h-3" />
+                                        Neural Effect
+                                    </div>
+                                    <div className="text-lg font-semibold text-white">{trackMetadata.neuralEffect}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 uppercase tracking-wider">
+                                        <Music className="w-3 h-3" />
+                                        Genre
+                                    </div>
+                                    <div className="text-lg font-semibold text-white">{trackMetadata.genre}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-gray-500 uppercase tracking-wider">BPM</div>
+                                    <div className="text-lg font-semibold text-white">{trackMetadata.bpm}</div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-gray-500 uppercase tracking-wider">Energy</div>
+                                    <div className="text-lg font-semibold text-white">{trackMetadata.energy}</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
